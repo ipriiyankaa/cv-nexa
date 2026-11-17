@@ -3,18 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CV Nexa</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>CV Nexa — AI ATS Resume Intelligence</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f3f6f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        }
+        .card {
+            border: none;
+            border-radius: 14px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+        }
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background-color: #e2e8f0;
+            color: #1e293b;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            border: none;
+            transition: all 0.2s ease;
+            margin-bottom: 16px;
+        }
+        .btn-back:hover {
+            background-color: #cbd5e1;
+            color: #0f172a;
+        }
+        .nav-pills .nav-link.active {
+            background-color: #2563eb;
+        }
+    </style>
 </head>
-<body class="bg-light">
+<body>
 
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="/">CV Nexa</a>
-            <div>
+    <nav class="navbar navbar-expand-lg navbar-dark px-4 py-3">
+        <div class="container">
+            <a class="navbar-brand fw-bold fs-4" href="/">🚀 CV Nexa</a>
+            <div class="d-flex align-items-center gap-3">
                 {% if session.get('username') %}
-                    <span class="text-white me-3">Hello, {{ session['username'] }}</span>
+                    <span class="text-light small">Welcome, <strong>{{ session['username'] }}</strong></span>
                     <a href="/logout" class="btn btn-outline-light btn-sm">Logout</a>
                 {% else %}
                     <a href="/login" class="btn btn-outline-light btn-sm">Login</a>
@@ -24,90 +59,121 @@
         </div>
     </nav>
 
-    <div class="container mt-4">
+    <div class="container my-5">
 
-        <!-- Simple Back Link -->
+        <!-- Back Button (Visible whenever user is viewing results or sub-actions) -->
         {% if result or batch_results or rewritten_bullets or request.path != '/' %}
-        <div class="mb-3">
-            <a href="/" class="text-decoration-none text-muted">← Back</a>
+        <div>
+            <a href="/" class="btn-back">← Back to Main Dashboard</a>
         </div>
         {% endif %}
 
+        <!-- Flash Messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
                 {% endfor %}
             {% endif %}
         {% endwith %}
 
-        <!-- Tabs -->
-        <ul class="nav nav-tabs mb-3" id="myTab" role="tablist">
+        <!-- Feature Navigation Tabs -->
+        <ul class="nav nav-pills mb-4 justify-content-center gap-2" id="pills-tab" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="audit-tab" data-bs-toggle="tab" data-bs-target="#audit" type="button">Single Audit</button>
+                <button class="nav-link active fw-semibold" id="pills-audit-tab" data-bs-toggle="pill" data-bs-target="#pills-audit" type="button">
+                    🎯 Single Resume Audit
+                </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="batch-tab" data-bs-toggle="tab" data-bs-target="#batch" type="button">Batch Ranker</button>
+                <button class="nav-link fw-semibold" id="pills-batch-tab" data-bs-toggle="pill" data-bs-target="#pills-batch" type="button">
+                    📊 Multi-Resume Batch Ranker
+                </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="rewrite-tab" data-bs-toggle="tab" data-bs-target="#rewrite" type="button">AI Rewriter</button>
+                <button class="nav-link fw-semibold" id="pills-rewrite-tab" data-bs-toggle="pill" data-bs-target="#pills-rewrite" type="button">
+                    ✨ AI Bullet Rewriter
+                </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button">History</button>
+                <button class="nav-link fw-semibold" id="pills-history-tab" data-bs-toggle="pill" data-bs-target="#pills-history" type="button">
+                    🕒 Scan History
+                </button>
             </li>
         </ul>
 
-        <div class="tab-content" id="myTabContent">
-            
-            <!-- Audit Tab -->
-            <div class="tab-pane fade show active" id="audit">
-                <div class="card p-4 shadow-sm">
-                    <h3>Resume & Job Description Audit</h3>
-                    <form action="/analyze" method="POST" enctype="multipart/form-data" class="mt-3">
+        <div class="tab-content" id="pills-tabContent">
+
+            <!-- TAB 1: Single Resume Audit -->
+            <div class="tab-pane fade show active" id="pills-audit">
+                <div class="card p-4">
+                    <h4 class="fw-bold mb-3">ATS Resume & Job Description Audit</h4>
+                    <form action="/analyze" method="POST" enctype="multipart/form-data">
                         <div class="mb-3">
-                            <label class="form-label">Upload Resume (PDF/DOCX)</label>
-                            <input type="file" name="resume" class="form-control" required>
+                            <label class="form-label fw-semibold">Upload Resume (PDF or DOCX)</label>
+                            <input type="file" name="resume" class="form-control" accept=".pdf,.docx" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Job Description</label>
-                            <textarea name="job_description" class="form-control" rows="4" required></textarea>
+                            <label class="form-label fw-semibold">Paste Target Job Description (JD)</label>
+                            <textarea name="job_description" rows="5" class="form-control" placeholder="Paste the job requirements here..." required></textarea>
                         </div>
-                        <button type="submit" class="btn btn-dark">Analyze</button>
+                        <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold">Analyze Resume</button>
                     </form>
 
                     {% if result %}
                     <hr class="my-4">
-                    <h5>Score: {{ result.score }}%</h5>
-                    <p><strong>Matched:</strong> {{ result.matched | join(', ') }}</p>
-                    <p><strong>Missing:</strong> {{ result.missing | join(', ') }}</p>
-                    <p><strong>Feedback:</strong> {{ result.feedback }}</p>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold text-success mb-0">Audit Score: {{ result.score }}%</h5>
+                        <a href="/" class="btn-back mb-0">← Back / Scan Another</a>
+                    </div>
+                    <div class="bg-light p-3 rounded">
+                        <p><strong>Matched Keywords:</strong> {{ result.matched | join(', ') }}</p>
+                        <p><strong>Missing Keywords:</strong> {{ result.missing | join(', ') }}</p>
+                        <p><strong>AI Feedback:</strong> {{ result.feedback }}</p>
+                    </div>
                     {% endif %}
                 </div>
             </div>
 
-            <!-- Batch Ranker Tab -->
-            <div class="tab-pane fade" id="batch">
-                <div class="card p-4 shadow-sm">
-                    <h3>Multi-Resume Batch Ranker</h3>
-                    <form action="/batch_rank" method="POST" enctype="multipart/form-data" class="mt-3">
+            <!-- TAB 2: Batch Ranker -->
+            <div class="tab-pane fade" id="pills-batch">
+                <div class="card p-4">
+                    <h4 class="fw-bold mb-3">Rank Multiple Candidates Against a JD</h4>
+                    <form action="/batch_rank" method="POST" enctype="multipart/form-data">
                         <div class="mb-3">
-                            <label class="form-label">Upload Resumes</label>
-                            <input type="file" name="resumes" class="form-control" multiple required>
+                            <label class="form-label fw-semibold">Upload Multiple Resumes</label>
+                            <input type="file" name="resumes" class="form-control" accept=".pdf,.docx" multiple required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Job Description</label>
-                            <textarea name="job_description" class="form-control" rows="3" required></textarea>
+                            <label class="form-label fw-semibold">Job Description</label>
+                            <textarea name="job_description" rows="4" class="form-control" required></textarea>
                         </div>
-                        <button type="submit" class="btn btn-dark">Rank Candidates</button>
+                        <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold">Rank Resumes</button>
                     </form>
 
                     {% if batch_results %}
                     <hr class="my-4">
-                    <table class="table">
-                        <thead><tr><th>Rank</th><th>File</th><th>Score</th></tr></thead>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0">Candidate Leaderboard</h5>
+                        <a href="/" class="btn-back mb-0">← Back to Dashboard</a>
+                    </div>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Candidate File</th>
+                                <th>ATS Match Score</th>
+                            </tr>
+                        </thead>
                         <tbody>
                             {% for item in batch_results %}
-                            <tr><td>#{{ loop.index }}</td><td>{{ item.filename }}</td><td>{{ item.score }}%</td></tr>
+                            <tr>
+                                <td>#{{ loop.index }}</td>
+                                <td>{{ item.filename }}</td>
+                                <td><strong>{{ item.score }}%</strong></td>
+                            </tr>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -115,40 +181,63 @@
                 </div>
             </div>
 
-            <!-- AI Rewriter Tab -->
-            <div class="tab-pane fade" id="rewrite">
-                <div class="card p-4 shadow-sm">
-                    <h3>AI Bullet Point Rewriter</h3>
-                    <form action="/rewrite" method="POST" class="mt-3">
+            <!-- TAB 3: AI Bullet Rewriter -->
+            <div class="tab-pane fade" id="pills-rewrite">
+                <div class="card p-4">
+                    <h4 class="fw-bold mb-3">AI Resume Bullet Point Optimizer</h4>
+                    <form action="/rewrite" method="POST">
                         <div class="mb-3">
-                            <label class="form-label">Bullet Point</label>
-                            <textarea name="bullet_text" class="form-control" rows="2" required></textarea>
+                            <label class="form-label fw-semibold">Weak Resume Bullet Point</label>
+                            <textarea name="bullet_text" rows="3" class="form-control" placeholder="e.g., Worked on backend APIs and fixed bugs." required></textarea>
                         </div>
-                        <button type="submit" class="btn btn-dark">Rewrite</button>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Target Role / Keywords (Optional)</label>
+                            <input type="text" name="target_role" class="form-control" placeholder="e.g., Python Backend Developer">
+                        </div>
+                        <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold">Rewrite with Gemini AI</button>
                     </form>
 
                     {% if rewritten_bullets %}
                     <hr class="my-4">
-                    <div>{{ rewritten_bullets | safe }}</div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0">AI Enhanced Suggestions</h5>
+                        <a href="/" class="btn-back mb-0">← Back</a>
+                    </div>
+                    <div class="bg-light p-3 rounded">
+                        {{ rewritten_bullets | safe }}
+                    </div>
                     {% endif %}
                 </div>
             </div>
 
-            <!-- History Tab -->
-            <div class="tab-pane fade" id="history">
-                <div class="card p-4 shadow-sm">
-                    <h3>Scan History</h3>
+            <!-- TAB 4: Scan History -->
+            <div class="tab-pane fade" id="pills-history">
+                <div class="card p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="fw-bold mb-0">Previous ATS Scans</h4>
+                        <a href="/" class="btn-back mb-0">← Back to Home</a>
+                    </div>
                     {% if history %}
-                    <table class="table mt-3">
-                        <thead><tr><th>Date</th><th>File</th><th>Score</th></tr></thead>
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Resume</th>
+                                <th>Score</th>
+                            </tr>
+                        </thead>
                         <tbody>
                             {% for row in history %}
-                            <tr><td>{{ row.created_at }}</td><td>{{ row.filename }}</td><td>{{ row.score }}%</td></tr>
+                            <tr>
+                                <td>{{ row.created_at }}</td>
+                                <td>{{ row.filename }}</td>
+                                <td><span class="badge bg-primary">{{ row.score }}%</span></td>
+                            </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                     {% else %}
-                    <p class="text-muted mt-2">No history found.</p>
+                    <p class="text-muted">No scan history found yet.</p>
                     {% endif %}
                 </div>
             </div>
@@ -156,7 +245,6 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
