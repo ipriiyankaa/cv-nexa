@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ATS Studio Pro — AI Resume Intelligence</title>
+    <title>CV Nexa — AI Resume Intelligence</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -12,7 +12,7 @@
     <div class="app-shell">
         <!-- Left Navigation Dock -->
         <aside class="sidebar">
-            <div class="brand-logo" title="ATS Studio Pro">⚡</div>
+            <div class="brand-logo" title="CV Nexa">⚡</div>
             <nav class="nav-icons" style="flex: 1;">
                 <button class="nav-btn active" onclick="switchTab('single-tab', this)">
                     <span class="icon">📄</span>
@@ -30,6 +30,13 @@
                     <span class="icon">🕒</span>
                     <span class="label">History</span>
                 </button>
+                
+                <!-- BACK BUTTON ADDED HERE -->
+                <a href="/" class="nav-btn" title="Back" style="margin-top: 10px; color: #94a3b8; text-decoration: none;">
+                    <span class="icon">⬅️</span>
+                    <span class="label">Back</span>
+                </a>
+
                 <a href="/logout" class="nav-btn" title="Logout" style="margin-top: auto; color: #f87171; text-decoration: none;">
                     <span class="icon">🚪</span>
                     <span class="label">Logout</span>
@@ -43,7 +50,7 @@
             <!-- TAB 1: SINGLE RESUME ANALYZER -->
             <div id="single-tab" class="tab-content active">
                 <header class="top-bar">
-                    <div class="pill-badge">NLP + Gemini AI Engine • Welcome, {{ username }}</div>
+                    <div class="pill-badge">CV Nexa Engine • Welcome, {{ username }}</div>
                     <h1>Resume Deep Audit & Interview Coach</h1>
                     <p>Analyze keyword phrases, ATS structure, action verbs, and get tailored interview questions.</p>
                 </header>
