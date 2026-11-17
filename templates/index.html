@@ -3,209 +3,248 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CV Nexa — AI Resume Intelligence</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>CV Nexa — AI ATS Resume Intelligence</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f3f6f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        }
+        .card {
+            border: none;
+            border-radius: 14px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+        }
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background-color: #e2e8f0;
+            color: #1e293b;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            border: none;
+            transition: all 0.2s ease;
+            margin-bottom: 16px;
+        }
+        .btn-back:hover {
+            background-color: #cbd5e1;
+            color: #0f172a;
+        }
+        .nav-pills .nav-link.active {
+            background-color: #2563eb;
+        }
+    </style>
 </head>
 <body>
-    <div class="app-shell">
-        <!-- Left Navigation Dock -->
-        <aside class="sidebar">
-            <div class="brand-logo" title="CV Nexa">⚡</div>
-                    <span class="label">Analyzer</span>
-                </button>
-                <button class="nav-btn" onclick="switchTab('batch-tab', this)">
-                    <span class="icon">📊</span>
-                    <span class="label">Ranker</span>
-                </button>
-                <button class="nav-btn" onclick="switchTab('rewriter-tab', this)">
-                    <span class="icon">✍️</span>
-                    <span class="label">Rewriter</span>
-                </button>
-                <button class="nav-btn" onclick="switchTab('history-tab', this)">
-                    <span class="icon">🕒</span>
-                    <span class="label">History</span>
-                </button>
-                <a href="/logout" class="nav-btn" title="Logout" style="margin-top: auto; color: #f87171; text-decoration: none;">
-                    <span class="icon">🚪</span>
-                    <span class="label">Logout</span>
-                </a>
-            </nav>
-        </aside>
 
-        <!-- Main Workspace -->
-        <main class="workspace">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark px-4 py-3">
+        <div class="container">
+            <a class="navbar-brand fw-bold fs-4" href="/">🚀 CV Nexa</a>
+            <div class="d-flex align-items-center gap-3">
+                {% if session.get('username') %}
+                    <span class="text-light small">Welcome, <strong>{{ session['username'] }}</strong></span>
+                    <a href="/logout" class="btn btn-outline-light btn-sm">Logout</a>
+                {% else %}
+                    <a href="/login" class="btn btn-outline-light btn-sm">Login</a>
+                    <a href="/register" class="btn btn-primary btn-sm">Sign Up</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
 
-            <!-- TAB 1: SINGLE RESUME ANALYZER -->
-            <div id="single-tab" class="tab-content active">
-                <header class="top-bar">
-                    <div class="pill-badge">NLP + Gemini AI Engine • Welcome, {{ username }}</div>
-                    <h1>Resume Deep Audit & Interview Coach</h1>
-                    <p>Analyze keyword phrases, ATS structure, action verbs, and get tailored interview questions.</p>
-                </header>
+    <div class="container my-5">
 
-                <section class="glass-card">
-                    <form id="analyzerForm" onsubmit="event.preventDefault();">
-                        <div class="form-group">
-                            <label>Upload Candidate Resume (PDF / DOCX)</label>
-                            <div class="file-upload-box">
-                                <div class="upload-icon">📄</div>
-                                <p class="upload-title" id="singleFileName">Click or drag & drop resume here</p>
-                                <p class="upload-sub">Max size 16MB • Auto-deleted after scan for privacy</p>
-                                <input type="file" id="resume" accept=".pdf, .docx" required class="file-input">
-                            </div>
+        <!-- Back Button (Visible whenever user is viewing results or sub-actions) -->
+        {% if result or batch_results or rewritten_bullets or request.path != '/' %}
+        <div>
+            <a href="/" class="btn-back">← Back to Main Dashboard</a>
+        </div>
+        {% endif %}
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Feature Navigation Tabs -->
+        <ul class="nav nav-pills mb-4 justify-content-center gap-2" id="pills-tab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active fw-semibold" id="pills-audit-tab" data-bs-toggle="pill" data-bs-target="#pills-audit" type="button">
+                    🎯 Single Resume Audit
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-semibold" id="pills-batch-tab" data-bs-toggle="pill" data-bs-target="#pills-batch" type="button">
+                    📊 Multi-Resume Batch Ranker
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-semibold" id="pills-rewrite-tab" data-bs-toggle="pill" data-bs-target="#pills-rewrite" type="button">
+                    ✨ AI Bullet Rewriter
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-semibold" id="pills-history-tab" data-bs-toggle="pill" data-bs-target="#pills-history" type="button">
+                    🕒 Scan History
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="pills-tabContent">
+
+            <!-- TAB 1: Single Resume Audit -->
+            <div class="tab-pane fade show active" id="pills-audit">
+                <div class="card p-4">
+                    <h4 class="fw-bold mb-3">ATS Resume & Job Description Audit</h4>
+                    <form action="/analyze" method="POST" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Upload Resume (PDF or DOCX)</label>
+                            <input type="file" name="resume" class="form-control" accept=".pdf,.docx" required>
                         </div>
-
-                        <div class="form-group">
-                            <label>Target Job Description</label>
-                            <textarea id="jd" rows="4" placeholder="Paste the complete job description here..." required></textarea>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Paste Target Job Description (JD)</label>
+                            <textarea name="job_description" rows="5" class="form-control" placeholder="Paste the job requirements here..." required></textarea>
                         </div>
-
-                        <button type="submit" id="submitBtn" class="btn-primary">Run Deep ATS Scan ⚡</button>
+                        <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold">Analyze Resume</button>
                     </form>
-                </section>
 
-                <section id="results" class="glass-card hidden">
-                    <div class="score-container">
-                        <div class="score-ring">
-                            <div class="score-circle"><span id="score">0</span><small>%</small></div>
-                        </div>
-                        <div class="score-info">
-                            <h3 id="scoreVerdict">ATS Compatibility Score</h3>
-                            <p>Evaluated across Keywords, Phrases, Structure, Verbs & Metrics.</p>
-                            <a href="/download-report" class="btn-secondary" target="_blank">📥 Download Official PDF Report</a>
-                        </div>
+                    {% if result %}
+                    <hr class="my-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold text-success mb-0">Audit Score: {{ result.score }}%</h5>
+                        <a href="/" class="btn-back mb-0">← Back / Scan Another</a>
                     </div>
-
-                    <div class="chart-box">
-                        <h3>📊 4-Metric ATS Alignment Radar</h3>
-                        <div class="chart-wrapper"><canvas id="scoreChart"></canvas></div>
+                    <div class="bg-light p-3 rounded">
+                        <p><strong>Matched Keywords:</strong> {{ result.matched | join(', ') }}</p>
+                        <p><strong>Missing Keywords:</strong> {{ result.missing | join(', ') }}</p>
+                        <p><strong>AI Feedback:</strong> {{ result.feedback }}</p>
                     </div>
-
-                    <div class="keywords-grid">
-                        <div class="box matched-box">
-                            <h3><span class="dot green-dot"></span> Matched Keywords & Phrases</h3>
-                            <div id="matchedList" class="badge-list"></div>
-                        </div>
-                        <div class="box missing-box">
-                            <h3><span class="dot red-dot"></span> Missing Target Keywords</h3>
-                            <div id="missingList" class="badge-list"></div>
-                        </div>
-                    </div>
-
-                    <div class="ai-box">
-                        <div class="ai-header">
-                            <h3>💡 AI Bullet Suggestions & Expected Interview Questions</h3>
-                            <button onclick="copyText('aiContent', this)" class="btn-copy">📋 Copy</button>
-                        </div>
-                        <div id="aiContent" class="ai-text"></div>
-                    </div>
-                </section>
+                    {% endif %}
+                </div>
             </div>
 
-            <!-- TAB 2: MULTI-RESUME BATCH RANKER -->
-            <div id="batch-tab" class="tab-content hidden">
-                <header class="top-bar">
-                    <div class="pill-badge">Bulk Candidate Screening</div>
-                    <h1>Multi-Resume Batch Ranker</h1>
-                    <p>Upload 5+ resumes simultaneously, sort in Ascending/Descending order, and export to CSV.</p>
-                </header>
-
-                <section class="glass-card">
-                    <form id="batchForm" onsubmit="event.preventDefault();">
-                        <div class="form-group">
-                            <label>Select Multiple Resumes (Hold Ctrl / Cmd to select 5+ files)</label>
-                            <div class="file-upload-box">
-                                <div class="upload-icon">📚</div>
-                                <p class="upload-title" id="batchFileCount">Click to select multiple PDF/DOCX resumes</p>
-                                <p class="upload-sub">Supports bulk comparison against a single job role</p>
-                                <input type="file" id="batchResumes" accept=".pdf, .docx" multiple required class="file-input">
-                            </div>
+            <!-- TAB 2: Batch Ranker -->
+            <div class="tab-pane fade" id="pills-batch">
+                <div class="card p-4">
+                    <h4 class="fw-bold mb-3">Rank Multiple Candidates Against a JD</h4>
+                    <form action="/batch_rank" method="POST" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Upload Multiple Resumes</label>
+                            <input type="file" name="resumes" class="form-control" accept=".pdf,.docx" multiple required>
                         </div>
-
-                        <div class="form-group">
-                            <label>Job Description for Benchmarking</label>
-                            <textarea id="batchJd" rows="4" placeholder="Paste job description to rank all resumes..." required></textarea>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Job Description</label>
+                            <textarea name="job_description" rows="4" class="form-control" required></textarea>
                         </div>
-
-                        <button type="submit" id="batchSubmitBtn" class="btn-primary">Analyze & Rank All Resumes 🚀</button>
+                        <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold">Rank Resumes</button>
                     </form>
-                </section>
 
-                <section id="batchResults" class="glass-card hidden">
-                    <div class="batch-header">
-                        <h3>Candidate Ranking Leaderboard</h3>
-                        <div class="sort-controls">
-                            <button onclick="sortBatchData('asc')" class="btn-sort active" id="sortAscBtn">⬆️ Ascending (Low → High)</button>
-                            <button onclick="sortBatchData('desc')" class="btn-sort" id="sortDescBtn">⬇️ Descending (High → Low)</button>
-                            <button onclick="exportBatchCSV()" class="btn-csv">📥 Export CSV</button>
+                    {% if batch_results %}
+                    <hr class="my-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0">Candidate Leaderboard</h5>
+                        <a href="/" class="btn-back mb-0">← Back to Dashboard</a>
+                    </div>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Candidate File</th>
+                                <th>ATS Match Score</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in batch_results %}
+                            <tr>
+                                <td>#{{ loop.index }}</td>
+                                <td>{{ item.filename }}</td>
+                                <td><strong>{{ item.score }}%</strong></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- TAB 3: AI Bullet Rewriter -->
+            <div class="tab-pane fade" id="pills-rewrite">
+                <div class="card p-4">
+                    <h4 class="fw-bold mb-3">AI Resume Bullet Point Optimizer</h4>
+                    <form action="/rewrite" method="POST">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Weak Resume Bullet Point</label>
+                            <textarea name="bullet_text" rows="3" class="form-control" placeholder="e.g., Worked on backend APIs and fixed bugs." required></textarea>
                         </div>
-                    </div>
-
-                    <div class="table-wrapper">
-                        <table class="rank-table">
-                            <thead>
-                                <tr>
-                                    <th>Order</th>
-                                    <th>Resume File</th>
-                                    <th>Overall ATS Score</th>
-                                    <th>Keyword Match</th>
-                                    <th>Matched / Missing</th>
-                                    <th>Top Matched Skills</th>
-                                </tr>
-                            </thead>
-                            <tbody id="batchTableBody"></tbody>
-                        </table>
-                    </div>
-                </section>
-            </div>
-
-            <!-- TAB 3: AI BULLET REWRITER -->
-            <div id="rewriter-tab" class="tab-content hidden">
-                <header class="top-bar">
-                    <div class="pill-badge">STAR Method Optimizer</div>
-                    <h1>AI Resume Bullet Rewriter</h1>
-                    <p>Convert passive job duties into high-impact, metric-driven resume achievements.</p>
-                </header>
-
-                <section class="glass-card">
-                    <div class="form-group">
-                        <label>Enter Weak or Generic Resume Bullet Point</label>
-                        <textarea id="bulletInput" rows="3" placeholder="e.g., Responsible for building backend APIs and managing database queries."></textarea>
-                    </div>
-                    <button id="rewriteBtn" onclick="rewriteBullet()" class="btn-primary">Rewrite with STAR Method ✨</button>
-
-                    <div id="rewrittenOutput" class="ai-box hidden" style="margin-top: 20px;">
-                        <div class="ai-header">
-                            <h3>✅ ATS-Optimized Bullet Options</h3>
-                            <button onclick="copyText('rewrittenText', this)" class="btn-copy">📋 Copy</button>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Target Role / Keywords (Optional)</label>
+                            <input type="text" name="target_role" class="form-control" placeholder="e.g., Python Backend Developer">
                         </div>
-                        <div id="rewrittenText" class="ai-text"></div>
+                        <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold">Rewrite with Gemini AI</button>
+                    </form>
+
+                    {% if rewritten_bullets %}
+                    <hr class="my-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0">AI Enhanced Suggestions</h5>
+                        <a href="/" class="btn-back mb-0">← Back</a>
                     </div>
-                </section>
+                    <div class="bg-light p-3 rounded">
+                        {{ rewritten_bullets | safe }}
+                    </div>
+                    {% endif %}
+                </div>
             </div>
 
-            <!-- TAB 4: SCAN HISTORY -->
-            <div id="history-tab" class="tab-content hidden">
-                <header class="top-bar">
-                    <div class="pill-badge">Local Session Storage</div>
-                    <h1>Recent Scan History</h1>
-                    <p>Track your resume score improvements across different iterations.</p>
-                </header>
-
-                <section class="glass-card">
-                    <div class="batch-header">
-                        <h3>Saved Audit Logs</h3>
-                        <button onclick="clearHistory()" class="btn-sort">🗑️ Clear History</button>
+            <!-- TAB 4: Scan History -->
+            <div class="tab-pane fade" id="pills-history">
+                <div class="card p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="fw-bold mb-0">Previous ATS Scans</h4>
+                        <a href="/" class="btn-back mb-0">← Back to Home</a>
                     </div>
-                    <div id="historyContainer" class="history-list"></div>
-                </section>
+                    {% if history %}
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Resume</th>
+                                <th>Score</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in history %}
+                            <tr>
+                                <td>{{ row.created_at }}</td>
+                                <td>{{ row.filename }}</td>
+                                <td><span class="badge bg-primary">{{ row.score }}%</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <p class="text-muted">No scan history found yet.</p>
+                    {% endif %}
+                </div>
             </div>
 
-        </main>
+        </div>
     </div>
 
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -4,101 +4,68 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login — CV Nexa</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        .auth-container {
-            display: flex; justify-content: center; align-items: center;
-            min-height: 100vh; background: #090d16; padding: 20px;
+        body {
+            background-color: #f3f6f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
         }
         .auth-card {
-            background: rgba(17, 24, 39, 0.9); border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 35px; border-radius: 16px; width: 100%; max-width: 400px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4); text-align: center;
+            width: 100%;
+            max-width: 420px;
+            background: #fff;
+            padding: 32px;
+            border-radius: 14px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         }
-        .auth-card h1 { font-size: 24px; color: #fff; margin-bottom: 8px; }
-        .auth-card p { color: #94a3b8; font-size: 13px; margin-bottom: 25px; }
-        .form-group { margin-bottom: 15px; text-align: left; }
-        .form-group label { display: block; font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px; }
-        .form-group input {
-            width: 100%; padding: 12px; background: rgba(15, 23, 42, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: #fff; font-size: 14px; outline: none;
+        .btn-back {
+            display: inline-block;
+            text-decoration: none;
+            color: #475569;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 18px;
         }
-        .form-group input:focus { border-color: #6366f1; }
-        .auth-btn {
-            width: 100%; padding: 12px; background: linear-gradient(135deg, #4f46e5, #7c3aed);
-            color: #fff; border: none; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; margin-top: 10px;
+        .btn-back:hover {
+            color: #0f172a;
         }
-        .toggle-link { margin-top: 20px; font-size: 12px; color: #94a3b8; }
-        .toggle-link a { color: #818cf8; text-decoration: none; font-weight: 600; cursor: pointer; }
-        .error-msg { color: #f87171; font-size: 12px; margin-bottom: 15px; }
     </style>
 </head>
 <body>
-    <div class="auth-container">
-        <div class="auth-card">
-            <div style="font-size: 32px; margin-bottom: 10px;">⚡</div>
-            <h1 id="formTitle">CV Nexa</h1>
-            <p id="formSub">Sign in to access your CV Nexa dashboard</p>
-            
-            <div id="errorAlert" class="error-msg"></div>
+    <div class="auth-card">
+        <!-- Back Button -->
+        <a href="/" class="btn-back">← Back to Home</a>
 
-            <form id="authForm" onsubmit="handleAuth(event)">
-                <div class="form-group">
-                    <label>Username</label>
-                    <input type="text" id="username" required placeholder="Enter your username">
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="password" required placeholder="Enter your password">
-                </div>
-                <button type="submit" id="authBtn" class="auth-btn">Sign In</button>
-            </form>
+        <h3 class="fw-bold mb-1">Welcome Back</h3>
+        <p class="text-muted small mb-4">Login to access your CV Nexa dashboard</p>
 
-            <div class="toggle-link">
-                <span id="toggleText">Don't have an account?</span> 
-                <a onclick="toggleMode()" id="toggleBtn">Sign Up</a>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form action="/login" method="POST">
+            <div class="mb-3">
+                <label class="form-label">Username or Email</label>
+                <input type="text" name="username" class="form-control" required>
             </div>
-        </div>
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                <input type="password" name="password" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">Login</button>
+        </form>
+
+        <p class="text-center small mt-3 mb-0">
+            Don't have an account? <a href="/register">Sign Up</a>
+        </p>
     </div>
-
-    <script>
-        let isLogin = true;
-
-        function toggleMode() {
-            isLogin = !isLogin;
-            document.getElementById('formTitle').innerText = isLogin ? "CV Nexa" : "Join CV Nexa";
-            document.getElementById('formSub').innerText = isLogin ? "Sign in to access your CV Nexa dashboard" : "Create an account to start optimizing resumes";
-            document.getElementById('authBtn').innerText = isLogin ? "Sign In" : "Register";
-            document.getElementById('toggleText').innerText = isLogin ? "Don't have an account?" : "Already have an account?";
-            document.getElementById('toggleBtn').innerText = isLogin ? "Sign Up" : "Sign In";
-            document.getElementById('errorAlert').innerText = "";
-        }
-
-        async function handleAuth(e) {
-            e.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const endpoint = isLogin ? '/login' : '/register';
-
-            try {
-                const res = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
-                const data = await res.json();
-
-                if (res.ok && data.success) {
-                    window.location.href = '/';
-                } else {
-                    document.getElementById('errorAlert').innerText = data.error || "Authentication failed";
-                }
-            } catch (err) {
-                document.getElementById('errorAlert').innerText = "Server connection error";
-            }
-        }
-    </script>
 </body>
 </html>
 
