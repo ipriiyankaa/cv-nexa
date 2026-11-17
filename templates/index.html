@@ -3,53 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CV Nexa — AI ATS Resume Intelligence</title>
+    <title>CV Nexa - AI Resume Analyzer</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body {
-            background-color: #f3f6f9;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        .navbar {
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-        }
-        .card {
-            border: none;
-            border-radius: 14px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-        }
-        .btn-back {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background-color: #e2e8f0;
-            color: #1e293b;
-            font-weight: 600;
-            padding: 8px 16px;
-            border-radius: 8px;
-            text-decoration: none;
-            border: none;
-            transition: all 0.2s ease;
-            margin-bottom: 16px;
-        }
-        .btn-back:hover {
-            background-color: #cbd5e1;
-            color: #0f172a;
-        }
-        .nav-pills .nav-link.active {
-            background-color: #2563eb;
-        }
+        body { background-color: #f8f9fa; }
+        .card { border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body>
 
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark px-4 py-3">
-        <div class="container">
-            <a class="navbar-brand fw-bold fs-4" href="/">🚀 CV Nexa</a>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4 py-3">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="/">🚀 CV Nexa</a>
             <div class="d-flex align-items-center gap-3">
                 {% if session.get('username') %}
-                    <span class="text-light small">Welcome, <strong>{{ session['username'] }}</strong></span>
+                    <span class="text-light">Hello, <strong>{{ session['username'] }}</strong></span>
                     <a href="/logout" class="btn btn-outline-light btn-sm">Logout</a>
                 {% else %}
                     <a href="/login" class="btn btn-outline-light btn-sm">Login</a>
@@ -60,13 +29,6 @@
     </nav>
 
     <div class="container my-5">
-
-        <!-- Back Button (Visible whenever user is viewing results or sub-actions) -->
-        {% if result or batch_results or rewritten_bullets or request.path != '/' %}
-        <div>
-            <a href="/" class="btn-back">← Back to Main Dashboard</a>
-        </div>
-        {% endif %}
 
         <!-- Flash Messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -80,35 +42,27 @@
             {% endif %}
         {% endwith %}
 
-        <!-- Feature Navigation Tabs -->
+        <!-- Navigation Tabs -->
         <ul class="nav nav-pills mb-4 justify-content-center gap-2" id="pills-tab" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active fw-semibold" id="pills-audit-tab" data-bs-toggle="pill" data-bs-target="#pills-audit" type="button">
-                    🎯 Single Resume Audit
-                </button>
+                <button class="nav-link active fw-semibold" id="pills-audit-tab" data-bs-toggle="pill" data-bs-target="#pills-audit" type="button">🎯 Single Audit</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link fw-semibold" id="pills-batch-tab" data-bs-toggle="pill" data-bs-target="#pills-batch" type="button">
-                    📊 Multi-Resume Batch Ranker
-                </button>
+                <button class="nav-link fw-semibold" id="pills-batch-tab" data-bs-toggle="pill" data-bs-target="#pills-batch" type="button">📊 Batch Ranker</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link fw-semibold" id="pills-rewrite-tab" data-bs-toggle="pill" data-bs-target="#pills-rewrite" type="button">
-                    ✨ AI Bullet Rewriter
-                </button>
+                <button class="nav-link fw-semibold" id="pills-rewrite-tab" data-bs-toggle="pill" data-bs-target="#pills-rewrite" type="button">✨ AI Bullet Rewriter</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link fw-semibold" id="pills-history-tab" data-bs-toggle="pill" data-bs-target="#pills-history" type="button">
-                    🕒 Scan History
-                </button>
+                <button class="nav-link fw-semibold" id="pills-history-tab" data-bs-toggle="pill" data-bs-target="#pills-history" type="button">🕒 Scan History</button>
             </li>
         </ul>
 
         <div class="tab-content" id="pills-tabContent">
 
             <!-- TAB 1: Single Resume Audit -->
-            <div class="tab-pane fade show active" id="pills-audit">
-                <div class="card p-4">
+            <div class="tab-pane fade show active" id="pills-audit" role="tabpanel">
+                <div class="card p-4 bg-white">
                     <h4 class="fw-bold mb-3">ATS Resume & Job Description Audit</h4>
                     <form action="/analyze" method="POST" enctype="multipart/form-data">
                         <div class="mb-3">
@@ -117,29 +71,26 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Paste Target Job Description (JD)</label>
-                            <textarea name="job_description" rows="5" class="form-control" placeholder="Paste the job requirements here..." required></textarea>
+                            <textarea name="job_description" rows="5" class="form-control" placeholder="Paste requirements here..." required></textarea>
                         </div>
-                        <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold">Analyze Resume</button>
+                        <button type="submit" class="btn btn-dark px-4 fw-semibold">Analyze Resume</button>
                     </form>
 
                     {% if result %}
                     <hr class="my-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="fw-bold text-success mb-0">Audit Score: {{ result.score }}%</h5>
-                        <a href="/" class="btn-back mb-0">← Back / Scan Another</a>
-                    </div>
+                    <h5 class="fw-bold text-success mb-3">Audit Score: {{ result.score }}%</h5>
                     <div class="bg-light p-3 rounded">
-                        <p><strong>Matched Keywords:</strong> {{ result.matched | join(', ') }}</p>
-                        <p><strong>Missing Keywords:</strong> {{ result.missing | join(', ') }}</p>
-                        <p><strong>AI Feedback:</strong> {{ result.feedback }}</p>
+                        <p class="mb-2"><strong>Matched Keywords:</strong> {{ result.matched | join(', ') }}</p>
+                        <p class="mb-2"><strong>Missing Keywords:</strong> {{ result.missing | join(', ') }}</p>
+                        <p class="mb-0"><strong>AI Feedback:</strong> {{ result.feedback }}</p>
                     </div>
                     {% endif %}
                 </div>
             </div>
 
             <!-- TAB 2: Batch Ranker -->
-            <div class="tab-pane fade" id="pills-batch">
-                <div class="card p-4">
+            <div class="tab-pane fade" id="pills-batch" role="tabpanel">
+                <div class="card p-4 bg-white">
                     <h4 class="fw-bold mb-3">Rank Multiple Candidates Against a JD</h4>
                     <form action="/batch_rank" method="POST" enctype="multipart/form-data">
                         <div class="mb-3">
@@ -150,17 +101,14 @@
                             <label class="form-label fw-semibold">Job Description</label>
                             <textarea name="job_description" rows="4" class="form-control" required></textarea>
                         </div>
-                        <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold">Rank Resumes</button>
+                        <button type="submit" class="btn btn-dark px-4 fw-semibold">Rank Resumes</button>
                     </form>
 
                     {% if batch_results %}
                     <hr class="my-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="fw-bold mb-0">Candidate Leaderboard</h5>
-                        <a href="/" class="btn-back mb-0">← Back to Dashboard</a>
-                    </div>
-                    <table class="table table-bordered">
-                        <thead>
+                    <h5 class="fw-bold mb-3">Candidate Leaderboard</h5>
+                    <table class="table table-bordered table-striped">
+                        <thead class="table-dark">
                             <tr>
                                 <th>Rank</th>
                                 <th>Candidate File</th>
@@ -182,8 +130,8 @@
             </div>
 
             <!-- TAB 3: AI Bullet Rewriter -->
-            <div class="tab-pane fade" id="pills-rewrite">
-                <div class="card p-4">
+            <div class="tab-pane fade" id="pills-rewrite" role="tabpanel">
+                <div class="card p-4 bg-white">
                     <h4 class="fw-bold mb-3">AI Resume Bullet Point Optimizer</h4>
                     <form action="/rewrite" method="POST">
                         <div class="mb-3">
@@ -194,15 +142,12 @@
                             <label class="form-label fw-semibold">Target Role / Keywords (Optional)</label>
                             <input type="text" name="target_role" class="form-control" placeholder="e.g., Python Backend Developer">
                         </div>
-                        <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold">Rewrite with Gemini AI</button>
+                        <button type="submit" class="btn btn-dark px-4 fw-semibold">Rewrite with Gemini AI</button>
                     </form>
 
                     {% if rewritten_bullets %}
                     <hr class="my-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="fw-bold mb-0">AI Enhanced Suggestions</h5>
-                        <a href="/" class="btn-back mb-0">← Back</a>
-                    </div>
+                    <h5 class="fw-bold mb-3">AI Enhanced Suggestions</h5>
                     <div class="bg-light p-3 rounded">
                         {{ rewritten_bullets | safe }}
                     </div>
@@ -211,18 +156,15 @@
             </div>
 
             <!-- TAB 4: Scan History -->
-            <div class="tab-pane fade" id="pills-history">
-                <div class="card p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h4 class="fw-bold mb-0">Previous ATS Scans</h4>
-                        <a href="/" class="btn-back mb-0">← Back to Home</a>
-                    </div>
+            <div class="tab-pane fade" id="pills-history" role="tabpanel">
+                <div class="card p-4 bg-white">
+                    <h4 class="fw-bold mb-3">Previous ATS Scans</h4>
                     {% if history %}
                     <table class="table table-hover">
-                        <thead>
+                        <thead class="table-dark">
                             <tr>
                                 <th>Date</th>
-                                <th>Resume</th>
+                                <th>Resume File</th>
                                 <th>Score</th>
                             </tr>
                         </thead>
@@ -231,7 +173,7 @@
                             <tr>
                                 <td>{{ row.created_at }}</td>
                                 <td>{{ row.filename }}</td>
-                                <td><span class="badge bg-primary">{{ row.score }}%</span></td>
+                                <td><span class="badge bg-success">{{ row.score }}%</span></td>
                             </tr>
                             {% endfor %}
                         </tbody>
